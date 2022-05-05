@@ -43,6 +43,28 @@ async function run() {
 
       res.send({ success: true, data: product });
     });
+
+    // update a product
+    app.put("/products", async (req, res) => {
+      const id = req.body.id;
+      const quantity = req.body.newQuantity;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          quantity,
+        },
+      };
+      const result = await perfumeCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      if (!result.acknowledged) {
+        res.send({ success: false, error: "Could not delivered" });
+      }
+      res.send({ success: true, data: id });
+    });
   } catch (error) {
     console.log(error);
   }
