@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
 const { MongoClient, ServerApiVersion } = require("mongodb");
+require("dotenv").config();
 
 const app = express();
 
@@ -19,14 +19,26 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-const run = async () => {
+async function run() {
   try {
+    await client.connect();
     const perfumeCollection = client.db("assignment1").collection("perfume");
     console.log(`db is connected`);
-  } finally {
-    //
+
+    // get products from db
+    app.get("/products", async (req, res) => {
+      const query = {};
+      const cursor = perfumeCollection.find(query);
+      const products = await cursor.toArray();
+      if (!products.length) {
+        res.send({ success: false, error: "No products found" });
+      }
+      res.send({ success: true, data: products });
+    });
+  } catch (error) {
+    console.log(error);
   }
-};
+}
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
