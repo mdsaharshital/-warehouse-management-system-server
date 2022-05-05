@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 const app = express();
@@ -34,6 +34,14 @@ async function run() {
         res.send({ success: false, error: "No products found" });
       }
       res.send({ success: true, data: products });
+    });
+    // search products by id
+    app.get("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const product = await perfumeCollection.findOne(filter);
+
+      res.send({ success: true, data: product });
     });
   } catch (error) {
     console.log(error);
