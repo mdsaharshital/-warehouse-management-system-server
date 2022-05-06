@@ -35,6 +35,15 @@ async function run() {
       }
       res.send({ success: true, data: products });
     });
+    // post a product
+    app.post("/products", async (req, res) => {
+      const newProduct = req.body;
+      const result = await perfumeCollection.insertOne(newProduct);
+      if (!result.acknowledged) {
+        return res.send({ success: false, error: "Couldn't added" });
+      }
+      res.send({ success: true, message: "Added successfully" });
+    });
     // search products by id
     app.get("/products/:id", async (req, res) => {
       const id = req?.params?.id;
@@ -71,8 +80,10 @@ async function run() {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const result = await perfumeCollection.deleteOne(filter);
-      console.log(id);
-      res.send(result);
+      if (result.deletedCount === 0) {
+        return res.send({ success: false, error: "Could not deleted" });
+      }
+      res.send({ success: true, message: "Deleted Succesfully" });
     });
   } catch (error) {
     console.log(error);
