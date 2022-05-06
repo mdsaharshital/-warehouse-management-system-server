@@ -37,7 +37,7 @@ async function run() {
     });
     // search products by id
     app.get("/products/:id", async (req, res) => {
-      const id = req.params.id;
+      const id = req?.params?.id;
       const filter = { _id: ObjectId(id) };
       const product = await perfumeCollection.findOne(filter);
 
@@ -46,8 +46,8 @@ async function run() {
 
     // update a product
     app.put("/products", async (req, res) => {
-      const id = req.body.id;
-      const quantity = req.body.newQuantity;
+      const id = req?.body?.id;
+      const quantity = req?.body?.newQuantity;
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
       const updateDoc = {
@@ -64,6 +64,15 @@ async function run() {
         return res.send({ success: false, error: "Could not delivered" });
       }
       res.send({ success: true, data: id });
+    });
+
+    // delete a product
+    app.delete("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await perfumeCollection.deleteOne(filter);
+      console.log(id);
+      res.send(result);
     });
   } catch (error) {
     console.log(error);
