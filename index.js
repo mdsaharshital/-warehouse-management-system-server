@@ -31,7 +31,7 @@ async function run() {
       const cursor = perfumeCollection.find(query);
       const products = await cursor.toArray();
       if (!products.length) {
-        res.send({ success: false, error: "No products found" });
+        return res.send({ success: false, error: "No products found" });
       }
       res.send({ success: true, data: products });
     });
@@ -61,7 +61,7 @@ async function run() {
         options
       );
       if (!result.acknowledged) {
-        res.send({ success: false, error: "Could not delivered" });
+        return res.send({ success: false, error: "Could not delivered" });
       }
       res.send({ success: true, data: id });
     });
