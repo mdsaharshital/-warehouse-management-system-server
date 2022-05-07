@@ -35,6 +35,18 @@ async function run() {
       }
       res.send({ success: true, data: products });
     });
+    // get products from db
+    app.get("/myproducts/:email", async (req, res) => {
+      const myEmail = req?.params.email;
+      console.log(myEmail);
+      const filter = { email: myEmail };
+      const cursor = perfumeCollection.find(filter);
+      const products = await cursor.toArray();
+      if (!products.length) {
+        return res.send({ success: false, error: "No products found" });
+      }
+      res.send({ success: true, data: products });
+    });
     // post a product
     app.post("/products", async (req, res) => {
       const newProduct = req.body;
@@ -42,7 +54,6 @@ async function run() {
       if (!result.acknowledged) {
         return res.send({ success: false, error: "Couldn't added" });
       }
-      // heloo
       res.send({ success: true, message: "Added successfully" });
     });
     // search products by id
