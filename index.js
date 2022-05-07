@@ -22,7 +22,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
-    const perfumeCollection = client.db("assignment1").collection("perfume");
+    const perfumeCollection = client.db("assignment1").collection("perfume1");
     console.log(`db is connected`);
 
     // get products from db
@@ -42,6 +42,7 @@ async function run() {
       if (!result.acknowledged) {
         return res.send({ success: false, error: "Couldn't added" });
       }
+      // heloo
       res.send({ success: true, message: "Added successfully" });
     });
     // search products by id
@@ -57,11 +58,13 @@ async function run() {
     app.put("/products", async (req, res) => {
       const id = req?.body?.id;
       const quantity = req?.body?.newQuantity;
+      const sold = req?.body?.newSold;
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
       const updateDoc = {
         $set: {
           quantity,
+          sold,
         },
       };
       const result = await perfumeCollection.updateOne(
