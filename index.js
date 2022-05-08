@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -19,12 +20,36 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+function verifyJWT(req, res, next) {
+  const authToken = req.headers.authorization;
+  if (!authToken) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  const token = authToken.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRETE, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "forbidden access " });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 async function run() {
   try {
     await client.connect();
     const perfumeCollection = client.db("assignment1").collection("perfume1");
     console.log(`db is connected`);
 
+    // auth
+    app.post("/login", async (req, res) => {
+      const user = req.body;
+      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRETE, {
+        expiresIn: "1d",
+      });
+      res.send({ accessToken });
+    });
+    // services API
     // get products from db
     app.get("/products", async (req, res) => {
       const query = {};
@@ -36,16 +61,20 @@ async function run() {
       res.send({ success: true, data: products });
     });
     // get products from db
-    app.get("/myproducts/:email", async (req, res) => {
+    app.get("/myitems/:email", verifyJWT, async (req, res) => {
+      const decodedEmail = req?.decoded?.email;
       const myEmail = req?.params.email;
-      console.log(myEmail);
-      const filter = { email: myEmail };
-      const cursor = perfumeCollection.find(filter);
-      const products = await cursor.toArray();
-      if (!products.length) {
-        return res.send({ success: false, error: "No products found" });
+      if (decodedEmail === myEmail) {
+        const filter = { email: myEmail };
+        const cursor = perfumeCollection.find(filter);
+        const products = await cursor.toArray();
+        if (!products.length) {
+          return res.send({ success: false, error: "No products found" });
+        }
+        res.send({ success: true, data: products });
+      } else {
+        res.status(403).send({ success: false, message: "forbidden access" });
       }
-      res.send({ success: true, data: products });
     });
     // post a product
     app.post("/products", async (req, res) => {
